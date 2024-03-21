@@ -74,6 +74,39 @@ jobs:
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
 
+  dont_break_connectopus:
+    name: dont_break_connectopus
+    runs-on: ubuntu-latest
+    needs: code_changed
+    if: |
+      always() && !cancelled() &&
+      (needs.code_changed.result == 'skipped' || needs.code_changed.outputs.any_modified == 'true')
+    steps:
+
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Checkout Connectopus
+      uses: actions/checkout@v4
+      with:
+        repository: 'ghjm/connectopus'
+        path: './connectopus'
+        fetch-depth: 0
+
+    - name: Use local golib
+      working-directory: './connectopus'
+      run: 'echo "replace github.com/ghjm/golib => $GITHUB_WORKSPACE" >> go.mod'
+
+    - name: Build Connectopus
+      working-directory: './connectopus'
+      run: 'make'
+
+    - name: Test Connectopus
+      working-directory: './connectopus'
+      run: 'make test'
+
   go_tests:
     name: go_tests
     if: |

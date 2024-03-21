@@ -20,3 +20,6 @@
 # Personal envrc
 .envrc.local
 
+# Connectopus checkout, for testing
+/connectopus
+
