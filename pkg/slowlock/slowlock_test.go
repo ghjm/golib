@@ -54,8 +54,11 @@ func TestSingleSlow(t *testing.T) {
 			time.Sleep(75 * time.Millisecond)
 			m.Unlock()
 		}()
-		m.Lock()
-		m.Unlock()
+		//nolint: all    // golangci-lint warns about empty critical section
+		{
+			m.Lock()
+			m.Unlock()
+		}
 		logMsgLock.Lock()
 		lm := logMsg
 		logMsgLock.Unlock()
@@ -72,7 +75,7 @@ func TestHammerWithSlow(t *testing.T) {
 		logMsgLock.Lock()
 		defer logMsgLock.Unlock()
 		logMsg = &data
-		wait := time.Now().Sub(logMsg.StartTime)
+		wait := time.Since(logMsg.StartTime)
 		if wait > maxWait {
 			maxWait = wait
 		}

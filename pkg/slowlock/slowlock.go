@@ -31,7 +31,7 @@ func (ld *LogData) String() string {
 	msg := fmt.Sprintf("#### SLOW LOCK ####: %s since %s (%s)",
 		descr,
 		ld.StartTime,
-		time.Now().Sub(ld.StartTime))
+		time.Since(ld.StartTime))
 	return msg
 }
 
