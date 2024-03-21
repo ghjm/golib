@@ -92,6 +92,7 @@ func (c Config) RWMutex() *RWMutex {
 type lockTracker struct {
 	Config
 	lastSuccessfulLock *LogData
+	lockLock           sync.RWMutex
 }
 
 func (lt *lockTracker) acquireLock(lockFunc func(), logData LogData) {
@@ -105,11 +106,14 @@ func (lt *lockTracker) acquireLock(lockFunc func(), logData LogData) {
 		for {
 			select {
 			case <-ticker.C:
+				lt.lockLock.RLock()
 				lf := lt.LogFunction
+				lsl := lt.lastSuccessfulLock
+				lt.lockLock.RUnlock()
 				if lf == nil {
 					lf = defaultLogFunction
 				}
-				lf(logData, lt.lastSuccessfulLock)
+				lf(logData, lsl)
 			case <-acquiredCh:
 				ticker.Stop()
 				return
@@ -118,7 +122,9 @@ func (lt *lockTracker) acquireLock(lockFunc func(), logData LogData) {
 	}()
 	lockFunc()
 	close(acquiredCh)
+	lt.lockLock.Lock()
 	lt.lastSuccessfulLock = &logData
+	lt.lockLock.Unlock()
 }
 
 // Mutex is a drop-in replacement for sync.Mutex that provides logging of slow lock acquisitions.

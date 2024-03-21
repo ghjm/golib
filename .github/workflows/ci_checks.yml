@@ -110,5 +110,5 @@ jobs:
             ${{ runner.os }}-go-${{ env.GO_VERSION }}-
 
       - name: Run tests
-        run: go test ./... -count=1
+        run: go test ./... -count=1 -race
 

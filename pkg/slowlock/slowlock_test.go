@@ -36,7 +36,10 @@ func TestHammerMutex(t *testing.T) {
 
 func TestSingleSlow(t *testing.T) {
 	var logMsg *LogData
+	logMsgLock := sync.Mutex{}
 	logMessage := func(data LogData, lastSuccessful *LogData) {
+		logMsgLock.Lock()
+		defer logMsgLock.Unlock()
 		logMsg = &data
 	}
 	testAnnotation := "test123"
@@ -53,15 +56,21 @@ func TestSingleSlow(t *testing.T) {
 		}()
 		m.Lock()
 		m.Unlock()
-		assert.NotNil(t, logMsg)
-		assert.Equal(t, logMsg.Annotation, testAnnotation)
+		logMsgLock.Lock()
+		lm := logMsg
+		logMsgLock.Unlock()
+		assert.NotNil(t, lm)
+		assert.Equal(t, lm.Annotation, testAnnotation)
 	}
 }
 
 func TestHammerWithSlow(t *testing.T) {
 	var logMsg *LogData
 	var maxWait time.Duration
+	logMsgLock := sync.Mutex{}
 	logMessage := func(data LogData, lastSuccessful *LogData) {
+		logMsgLock.Lock()
+		defer logMsgLock.Unlock()
 		logMsg = &data
 		wait := time.Now().Sub(logMsg.StartTime)
 		if wait > maxWait {
@@ -74,7 +83,11 @@ func TestHammerWithSlow(t *testing.T) {
 	}
 	for _, m := range []sync.Locker{cfg.Mutex(), cfg.RWMutex()} {
 		hammerLocker(m, 4, 50, 20*time.Millisecond)
-		assert.NotNil(t, logMsg)
-		assert.Less(t, maxWait, 100*time.Millisecond)
+		logMsgLock.Lock()
+		lm := logMsg
+		mw := maxWait
+		logMsgLock.Unlock()
+		assert.NotNil(t, lm)
+		assert.Less(t, mw, 200*time.Millisecond)
 	}
 }
