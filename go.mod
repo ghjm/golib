@@ -1,7 +1,8 @@
 module github.com/ghjm/golib
 
-go 1.20
-toolchain go1.24.1
+go 1.23.0
+
+toolchain go1.24.4
 
 require (
 	github.com/42wim/sshsig v0.0.0-20211121163825-841cf5bbc121

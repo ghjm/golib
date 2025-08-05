@@ -34,7 +34,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	q := r.URL.Query()
-	tokReq := q.Get(cn)
+	tokReq := q.Get(hn)
 	if tokReq != "" {
 		http.SetCookie(w, &http.Cookie{
 			Name:     cn,
